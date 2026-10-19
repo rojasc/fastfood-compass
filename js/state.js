@@ -1,4 +1,4 @@
-import { CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=6';
+import { CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=7';
 
 const STORE_KEY = 'ffplot:v1';
 const IMG_RE = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;

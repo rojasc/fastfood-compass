@@ -173,7 +173,7 @@ button { font: inherit; color: inherit; }
 .tile {
   container-type: inline-size; position: relative;
   display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px;
-  border-radius: 10px; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: pan-x pan-y;
+  border-radius: 10px; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: pan-y;
 }
 @media (hover: hover) { .tile:hover { background: #f4f2ec; } }
 .tile:active { background: #f4f2ec; }
@@ -221,7 +221,7 @@ button { font: inherit; color: inherit; }
 
 /* ---------- Mobile: chart on top, tray docked to the bottom ---------- */
 @media (max-width: 860px) {
-  :root { --tray-h: 178px; }
+  :root { --tray-h: 124px; }
   .layout { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; gap: 12px; }
   .poster { width: 100%; }
   .brand { font-size: 16px; }
@@ -229,18 +229,24 @@ button { font: inherit; color: inherit; }
   .tray {
     position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 30; max-height: none;
     height: calc(var(--tray-h) + env(safe-area-inset-bottom)); border-radius: 16px 16px 0 0;
-    border-width: 1px 0 0; padding: 10px 12px calc(6px + env(safe-area-inset-bottom));
+    border-width: 1px 0 0; padding: 8px 12px env(safe-area-inset-bottom);
     box-shadow: 0 -8px 30px rgba(0,0,0,.08);
   }
   .tray-head { flex-wrap: nowrap; }
-  .search { flex: 1 1 auto; padding: 7px 10px; }
+  .search { flex: 1 1 auto; padding: 5px 10px; height: 34px; }
   .toggle { margin-right: 0; font-size: 13px; }
+  #btn-custom { padding: 6px 10px; }
+  #btn-custom .long { display: none; }
   .hint { display: none; }
   .tiles {
-    display: flex; overflow-x: auto; overflow-y: hidden; margin: 8px -12px 0; padding: 4px 12px; gap: 2px;
-    scroll-snap-type: x proximity; flex: 1;
+    display: flex; overflow-x: auto; overflow-y: hidden; margin: 4px -12px 0; padding: 2px 12px; gap: 0;
+    scroll-snap-type: x proximity; flex: 1; scrollbar-width: none;
   }
-  .tile { flex: 0 0 74px; scroll-snap-align: start; }
+  .tiles::-webkit-scrollbar { display: none; }
+  .tile { flex: 0 0 62px; padding: 5px 2px; gap: 3px; scroll-snap-align: start; touch-action: pan-x; }
+  .tile .logo { width: 40px; height: 40px; border-radius: 8px; }
+  .tile .logo img { border-radius: 7px; }
+  .tile .tname { font-size: 10px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tiles .empty { flex: 1; }
 }
 @media (max-width: 560px) {

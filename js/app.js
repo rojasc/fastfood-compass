@@ -209,48 +209,54 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { selected = null; renderItems(); }
 });
 
-// Tray: tap to add. With a mouse you can also drag a tile straight onto the chart.
+// Tray: tap to add, or drag a tile onto the chart. On touch the tray scrolls one way,
+// so a drag only starts when the finger moves the other way (up out of the bottom bar,
+// sideways out of the sidebar).
+const dockedTray = matchMedia('(max-width: 860px)');
+
 tilesEl.addEventListener('pointerdown', (e) => {
   if (e.target.closest('.del')) return;
   const tile = e.target.closest('.tile');
   if (!tile || e.button > 0) return;
   const id = tile.dataset.id;
   const start = [e.clientX, e.clientY];
+  const touch = e.pointerType !== 'mouse';
+  const lift = touch ? 44 : 0; // keep the logo visible above the finger
   let ghost = null;
 
+  const dropPoint = (ev) => [ev.clientX, ev.clientY - lift];
   const move = (ev) => {
-    if (e.pointerType !== 'mouse') return;
-    if (!ghost && Math.hypot(ev.clientX - start[0], ev.clientY - start[1]) < 5) return;
+    const dx = ev.clientX - start[0], dy = ev.clientY - start[1];
     if (!ghost) {
+      if (Math.hypot(dx, dy) < 8) return;
+      if (touch && (dockedTray.matches ? Math.abs(dy) < Math.abs(dx) : Math.abs(dx) < Math.abs(dy))) return;
       ghost = el('div', { class: 'ghost-drag' }, logoFor(getItem(id)));
       document.body.append(ghost);
     }
-    ghost.style.left = `${ev.clientX}px`;
-    ghost.style.top = `${ev.clientY}px`;
+    const [x, y] = dropPoint(ev);
+    ghost.style.left = `${x}px`;
+    ghost.style.top = `${y}px`;
   };
-  const end = (ev) => {
+  const cleanup = () => {
+    ghost?.remove();
     window.removeEventListener('pointermove', move);
     window.removeEventListener('pointerup', end);
-    window.removeEventListener('pointercancel', cancel);
-    if (ghost) {
-      ghost.remove();
+    window.removeEventListener('pointercancel', cleanup);
+  };
+  const end = (ev) => {
+    const dragged = !!ghost;
+    cleanup();
+    if (dragged) {
+      const [x, y] = dropPoint(ev);
       const r = board.getBoundingClientRect();
-      if (ev.clientX > r.left && ev.clientX < r.right && ev.clientY > r.top && ev.clientY < r.bottom) {
-        place(id, ...boardPoint(ev.clientX, ev.clientY));
-      }
+      if (x > r.left && x < r.right && y > r.top && y < r.bottom) place(id, ...boardPoint(x, y));
     } else if (Math.hypot(ev.clientX - start[0], ev.clientY - start[1]) < 10) {
       placeNearCenter(id);
     }
   };
-  const cancel = () => {
-    ghost?.remove();
-    window.removeEventListener('pointermove', move);
-    window.removeEventListener('pointerup', end);
-    window.removeEventListener('pointercancel', cancel);
-  };
   window.addEventListener('pointermove', move);
   window.addEventListener('pointerup', end);
-  window.addEventListener('pointercancel', cancel);
+  window.addEventListener('pointercancel', cleanup);
 });
 
 tilesEl.addEventListener('keydown', (e) => {

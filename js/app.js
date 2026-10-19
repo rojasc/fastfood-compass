@@ -1,6 +1,6 @@
-import { CHAINS, CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=5';
-import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js?v=5';
-import { renderPoster } from './export.js?v=5';
+import { CHAINS, CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=6';
+import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js?v=6';
+import { renderPoster } from './export.js?v=6';
 
 const $ = (sel) => document.querySelector(sel);
 const board = $('#board');
@@ -210,54 +210,90 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { selected = null; renderItems(); }
 });
 
-// Tray: tap to add, or drag a tile onto the chart. On touch the tray scrolls one way,
-// so a drag only starts when the finger moves the other way (up out of the bottom bar,
-// sideways out of the sidebar).
+// Tray: tap to add, or drag a tile onto the chart. Mouse drags use pointer events.
+// Touch drags use touch events, because iOS Safari ignores touch-action inside a
+// scrolling strip and cancels the pointer as soon as the finger moves. The strip
+// scrolls one way, so a touch drag starts only when the finger goes the other way
+// (up out of the bottom bar, sideways out of the sidebar).
 const dockedTray = matchMedia('(max-width: 860px)');
+const TOUCH_LIFT = 44; // keep the logo visible above the finger
 
-tilesEl.addEventListener('pointerdown', (e) => {
-  if (e.target.closest('.del')) return;
-  const tile = e.target.closest('.tile');
-  if (!tile || e.button > 0) return;
-  const id = tile.dataset.id;
-  const start = [e.clientX, e.clientY];
-  const touch = e.pointerType !== 'mouse';
-  const lift = touch ? 44 : 0; // keep the logo visible above the finger
-  let ghost = null;
-
-  const dropPoint = (ev) => [ev.clientX, ev.clientY - lift];
-  const move = (ev) => {
-    const dx = ev.clientX - start[0], dy = ev.clientY - start[1];
-    if (!ghost) {
-      if (Math.hypot(dx, dy) < 8) return;
-      if (touch && (dockedTray.matches ? Math.abs(dy) < Math.abs(dx) : Math.abs(dx) < Math.abs(dy))) return;
-      ghost = el('div', { class: 'ghost-drag' }, logoFor(getItem(id)));
-      document.body.append(ghost);
-    }
-    const [x, y] = dropPoint(ev);
-    ghost.style.left = `${x}px`;
-    ghost.style.top = `${y}px`;
-  };
-  const cleanup = () => {
-    ghost?.remove();
-    window.removeEventListener('pointermove', move);
-    window.removeEventListener('pointerup', end);
-    window.removeEventListener('pointercancel', cleanup);
-  };
-  const end = (ev) => {
-    const dragged = !!ghost;
-    cleanup();
-    if (dragged) {
-      const [x, y] = dropPoint(ev);
+function trayDrag(id) {
+  const ghost = el('div', { class: 'ghost-drag' }, logoFor(getItem(id)));
+  document.body.append(ghost);
+  return {
+    move(x, y) { ghost.style.left = `${x}px`; ghost.style.top = `${y}px`; },
+    drop(x, y) {
+      ghost.remove();
       const r = board.getBoundingClientRect();
       if (x > r.left && x < r.right && y > r.top && y < r.bottom) place(id, ...boardPoint(x, y));
-    } else if (Math.hypot(ev.clientX - start[0], ev.clientY - start[1]) < 10) {
-      placeNearCenter(id);
-    }
+    },
+    cancel() { ghost.remove(); },
+  };
+}
+
+tilesEl.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'mouse' || e.button > 0 || e.target.closest('.del')) return;
+  const tile = e.target.closest('.tile');
+  if (!tile) return;
+  const id = tile.dataset.id;
+  const start = [e.clientX, e.clientY];
+  let drag = null;
+
+  const move = (ev) => {
+    if (!drag && Math.hypot(ev.clientX - start[0], ev.clientY - start[1]) < 5) return;
+    drag ??= trayDrag(id);
+    drag.move(ev.clientX, ev.clientY);
+  };
+  const end = (ev) => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', end);
+    if (drag) drag.drop(ev.clientX, ev.clientY);
+    else placeNearCenter(id);
   };
   window.addEventListener('pointermove', move);
   window.addEventListener('pointerup', end);
-  window.addEventListener('pointercancel', cleanup);
+});
+
+let touchDrag = null;
+
+tilesEl.addEventListener('touchstart', (e) => {
+  const tile = e.target.closest('.tile');
+  if (!tile || e.touches.length > 1 || e.target.closest('.del')) { touchDrag = null; return; }
+  const t = e.touches[0];
+  touchDrag = { id: tile.dataset.id, x: t.clientX, y: t.clientY, moved: false, drag: null };
+}, { passive: true });
+
+tilesEl.addEventListener('touchmove', (e) => {
+  const s = touchDrag;
+  if (!s) return;
+  const t = e.touches[0];
+  const dx = t.clientX - s.x, dy = t.clientY - s.y;
+  if (!s.drag) {
+    const across = dockedTray.matches ? Math.abs(dy) > Math.abs(dx) : Math.abs(dx) > Math.abs(dy);
+    // Claim the gesture from the first move, before iOS commits to scrolling the page.
+    if (Math.hypot(dx, dy) < 8) { if (across) e.preventDefault(); return; }
+    s.moved = true;
+    if (!across) { touchDrag = null; return; } // the user is scrolling the tray
+    s.drag = trayDrag(s.id);
+  }
+  e.preventDefault(); // stop the tray/page from scrolling while dragging
+  s.drag.move(t.clientX, t.clientY - TOUCH_LIFT);
+}, { passive: false });
+
+tilesEl.addEventListener('touchend', (e) => {
+  const s = touchDrag;
+  touchDrag = null;
+  if (!s) return;
+  const t = e.changedTouches[0];
+  e.preventDefault(); // no follow-up mouse/click events
+  if (s.drag) s.drag.drop(t.clientX, t.clientY - TOUCH_LIFT);
+  else if (!s.moved) placeNearCenter(s.id);
+});
+
+tilesEl.addEventListener('touchcancel', () => {
+  touchDrag?.drag?.cancel();
+  touchDrag = null;
 });
 
 tilesEl.addEventListener('keydown', (e) => {
@@ -332,11 +368,6 @@ function renderPreview() {
   const item = { name, img: customImg, color: $('#custom-color').value };
   $('#custom-preview').replaceChildren(logoFor(item), el('div', { class: 'name', textContent: name }));
 }
-
-$('#btn-search-toggle').addEventListener('click', () => {
-  const open = $('.tray').classList.toggle('searching');
-  if (open) $('#search').focus();
-});
 
 $('#btn-custom-m').addEventListener('click', () => $('#btn-custom').click());
 

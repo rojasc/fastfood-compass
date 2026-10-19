@@ -1,6 +1,6 @@
-import { CHAINS, CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=7';
-import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js?v=7';
-import { renderPoster } from './export.js?v=7';
+import { CHAINS, CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=8';
+import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js?v=8';
+import { renderPoster } from './export.js?v=8';
 
 const $ = (sel) => document.querySelector(sel);
 const board = $('#board');

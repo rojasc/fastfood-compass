@@ -24,8 +24,8 @@ python3 -m http.server 8000
 
 ## Deploying
 
-`.github/workflows/pages.yml` publishes the repo to GitHub Pages on every push to `main`.
-One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Served by GitHub Pages straight from `main` (Settings → Pages → Deploy from a branch → `main` / root).
+Live at https://rojasc.github.io/fastfood-compass/
 
 ## Files
 

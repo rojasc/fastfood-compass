@@ -1,6 +1,6 @@
-import { CHAINS, CHAIN_BY_ID, DEFAULT_STATE } from './chains.js';
-import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js';
-import { renderPoster } from './export.js';
+import { CHAINS, CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=5';
+import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js?v=5';
+import { renderPoster } from './export.js?v=5';
 
 const $ = (sel) => document.querySelector(sel);
 const board = $('#board');
@@ -162,6 +162,7 @@ itemsEl.addEventListener('pointerdown', (e) => {
   const start = [e.clientX, e.clientY];
   let dragging = false;
   node.setPointerCapture(e.pointerId);
+  node.classList.add('pressed');
 
   const move = (ev) => {
     if (!dragging && Math.hypot(ev.clientX - start[0], ev.clientY - start[1]) < 4) return;
@@ -179,7 +180,7 @@ itemsEl.addEventListener('pointerdown', (e) => {
     node.removeEventListener('pointermove', move);
     node.removeEventListener('pointerup', end);
     node.removeEventListener('pointercancel', end);
-    node.classList.remove('dragging');
+    node.classList.remove('dragging', 'pressed');
     if (dragging && node._pos) {
       state.p = state.p.filter((p) => p[0] !== id);
       state.p.push([id, ...node._pos]); // last in the list renders on top
@@ -331,6 +332,13 @@ function renderPreview() {
   const item = { name, img: customImg, color: $('#custom-color').value };
   $('#custom-preview').replaceChildren(logoFor(item), el('div', { class: 'name', textContent: name }));
 }
+
+$('#btn-search-toggle').addEventListener('click', () => {
+  const open = $('.tray').classList.toggle('searching');
+  if (open) $('#search').focus();
+});
+
+$('#btn-custom-m').addEventListener('click', () => $('#btn-custom').click());
 
 $('#btn-custom').addEventListener('click', () => {
   $('#form-custom').reset();

@@ -124,14 +124,16 @@ button { font: inherit; color: inherit; }
   transform: translate(-50%, -50%); pointer-events: auto; cursor: grab; touch-action: none;
   user-select: none; -webkit-user-select: none;
 }
-.item.dragging { cursor: grabbing; z-index: 5; }
-.item.dragging .logo { transform: scale(1.12); filter: drop-shadow(0 6px 10px rgba(0,0,0,.2)); }
+.item::before { content: ''; position: absolute; inset: -12px; } /* bigger touch target than the logo */
+.item.pressed { z-index: 5; }
+.item.dragging { cursor: grabbing; }
+.item.pressed .logo { transform: scale(1.5); filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
 .item.pop .logo { animation: pop .5s ease; }
 @keyframes pop { 0% { transform: scale(.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
 .logo {
   width: 8.6cqw; height: 8.6cqw; display: grid; place-items: center;
-  border-radius: 1.4cqw; transition: transform .12s;
+  border-radius: 1.4cqw; transition: transform .12s ease-out;
 }
 .logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 1.2cqw; pointer-events: none; -webkit-user-drag: none; }
 .logo.badge { overflow: hidden; }
@@ -177,6 +179,8 @@ button { font: inherit; color: inherit; }
 }
 @media (hover: hover) { .tile:hover { background: #f4f2ec; } }
 .tile:active { background: #f4f2ec; }
+.tile:active .logo { transform: scale(1.15); }
+.tray-tools { display: none; }
 .tile .logo { width: 56cqw; height: 56cqw; border-radius: 9cqw; }
 .tile .logo img { border-radius: 8cqw; }
 .tile .tname { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; color: #3a3833; }
@@ -221,7 +225,7 @@ button { font: inherit; color: inherit; }
 
 /* ---------- Mobile: chart on top, tray docked to the bottom ---------- */
 @media (max-width: 860px) {
-  :root { --tray-h: 124px; }
+  :root { --tray-h: 76px; }
   .layout { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; gap: 12px; }
   .poster { width: 100%; }
   .brand { font-size: 16px; }
@@ -229,23 +233,34 @@ button { font: inherit; color: inherit; }
   .tray {
     position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 30; max-height: none;
     height: calc(var(--tray-h) + env(safe-area-inset-bottom)); border-radius: 16px 16px 0 0;
-    border-width: 1px 0 0; padding: 8px 12px env(safe-area-inset-bottom);
-    box-shadow: 0 -8px 30px rgba(0,0,0,.08);
+    border-width: 1px 0 0; padding: 0 0 env(safe-area-inset-bottom);
+    box-shadow: 0 -8px 30px rgba(0,0,0,.08); flex-direction: row; align-items: center;
   }
-  .tray-head { flex-wrap: nowrap; }
-  .search { flex: 1 1 auto; padding: 5px 10px; height: 34px; }
+  .tray-head {
+    display: none; position: absolute; left: 0; right: 0; bottom: 100%; flex-wrap: nowrap;
+    padding: 8px 12px; background: #fff; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0;
+  }
+  .tray.searching .tray-head { display: flex; }
+  .tray.searching { border-radius: 0; }
+  .search { flex: 1 1 auto; padding: 5px 10px; height: 36px; }
   .toggle { margin-right: 0; font-size: 13px; }
-  #btn-custom { padding: 6px 10px; }
-  #btn-custom .long { display: none; }
+  #btn-custom { display: none; }
   .hint { display: none; }
+  .tray-tools { display: flex; flex-direction: column; gap: 4px; padding: 0 4px 0 10px; flex: none; }
+  .tool {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: #faf9f6;
+    font-size: 15px; line-height: 1; padding: 0; cursor: pointer;
+  }
+  .tool.dark { background: var(--ink); border-color: var(--ink); color: #fff; font-size: 20px; }
+  .tray.searching #btn-search-toggle { background: var(--ink); }
   .tiles {
-    display: flex; overflow-x: auto; overflow-y: hidden; margin: 4px -12px 0; padding: 2px 12px; gap: 0;
-    scroll-snap-type: x proximity; flex: 1; scrollbar-width: none;
+    display: flex; overflow-x: auto; overflow-y: hidden; margin: 0; padding: 0 8px 0 2px; gap: 0;
+    scroll-snap-type: x proximity; flex: 1; align-self: stretch; align-items: center; scrollbar-width: none;
   }
   .tiles::-webkit-scrollbar { display: none; }
-  .tile { flex: 0 0 62px; padding: 5px 2px; gap: 3px; scroll-snap-align: start; touch-action: pan-x; }
-  .tile .logo { width: 40px; height: 40px; border-radius: 8px; }
-  .tile .logo img { border-radius: 7px; }
+  .tile { flex: 0 0 60px; padding: 4px 2px; gap: 2px; scroll-snap-align: start; touch-action: pan-x; }
+  .tile .logo { width: 44px; height: 44px; border-radius: 9px; }
+  .tile .logo img { border-radius: 8px; }
   .tile .tname { font-size: 10px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tiles .empty { flex: 1; }
 }

@@ -1,9 +1,14 @@
 // Built-in chains. Most use a bundled logo (logos/<id>.png); a few render
 // as a brand-colored text badge because no decent logo was available.
-const logo = (id, name) => ({ id, name, img: `logos/${id}.png` });
+// Logo URLs resolve from this file, so pages in subfolders (ibs/) find them too.
+const logo = (id, name) => ({ id, name, img: new URL(`../logos/${id}.png`, import.meta.url).href });
 const badge = (id, name, bg, fg, text) => ({ id, name, badge: { bg, fg, text } });
 
-export const CHAINS = [
+export const STORE_KEY = 'ffplot:v1';
+export const FILE_NAME = 'fast-food-plot.png';
+export const SHARE_TEXT = 'Look at my chart 🍔';
+
+export const ITEMS = [
   logo('mcdonalds', "McDonald's"),
   logo('burger-king', 'Burger King'),
   logo('wendys', "Wendy's"),
@@ -46,8 +51,6 @@ export const CHAINS = [
   logo('bojangles', 'Bojangles'),
   logo('krispy-kreme', 'Krispy Kreme'),
 ];
-
-export const CHAIN_BY_ID = new Map(CHAINS.map((c) => [c.id, c]));
 
 // The example chart. Positions are 0..1 across the board: x left→right, y top→bottom.
 export const DEFAULT_STATE = {

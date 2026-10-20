@@ -1,6 +1,4 @@
-import { CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=8';
-
-const STORE_KEY = 'ffplot:v1';
+import { ITEM_BY_ID, DEFAULT_STATE, STORE_KEY } from './variant.js?v=9';
 const IMG_RE = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
 const COLOR_RE = /^#[0-9a-f]{6}$/i;
 
@@ -30,7 +28,7 @@ export function normalize(raw) {
 
   const seen = new Set();
   const p = (Array.isArray(r.p) ? r.p : [])
-    .filter((x) => Array.isArray(x) && (CHAIN_BY_ID.has(x[0]) || customIds.has(x[0])))
+    .filter((x) => Array.isArray(x) && (ITEM_BY_ID.has(x[0]) || customIds.has(x[0])))
     .filter((x) => !seen.has(x[0]) && seen.add(x[0]))
     .map(([id, x, y]) => [id, num01(x), num01(y)]);
 

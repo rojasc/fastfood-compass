@@ -1,6 +1,6 @@
-import { CHAINS, CHAIN_BY_ID, DEFAULT_STATE } from './chains.js?v=8';
-import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js?v=8';
-import { renderPoster } from './export.js?v=8';
+import { ITEMS, ITEM_BY_ID, DEFAULT_STATE, FILE_NAME, SHARE_TEXT } from './variant.js?v=9';
+import { normalize, clone, loadLocal, saveLocal, encodeState, decodeState } from './state.js?v=9';
+import { renderPoster } from './export.js?v=9';
 
 const $ = (sel) => document.querySelector(sel);
 const board = $('#board');
@@ -13,7 +13,7 @@ let selected = null;
 
 // ---------- Helpers ----------
 
-const getItem = (id) => CHAIN_BY_ID.get(id) || state.c.find((c) => c.id === id);
+const getItem = (id) => ITEM_BY_ID.get(id) || state.c.find((c) => c.id === id);
 const isPlaced = (id) => state.p.some((p) => p[0] === id);
 
 function el(tag, props = {}, ...children) {
@@ -103,12 +103,12 @@ function renderItems() {
 
 function renderTray() {
   const q = $('#search').value.trim().toLowerCase();
-  const pool = [...state.c, ...CHAINS].filter((c) => !isPlaced(c.id) && c.name.toLowerCase().includes(q));
+  const pool = [...state.c, ...ITEMS].filter((c) => !isPlaced(c.id) && c.name.toLowerCase().includes(q));
   tilesEl.replaceChildren(...pool.map((item) =>
     el('div', { class: 'tile', role: 'button', tabIndex: 0, dataId: item.id, title: `Add ${item.name}` },
       logoFor(item),
       el('span', { class: 'tname', textContent: item.name }),
-      item.id.startsWith('c') && !CHAIN_BY_ID.has(item.id)
+      item.id.startsWith('c') && !ITEM_BY_ID.has(item.id)
         ? el('button', { class: 'del', type: 'button', textContent: '×', title: 'Delete this custom item' }) : null)));
   if (!pool.length) tilesEl.append(el('div', { class: 'empty', textContent: q ? 'No matches.' : "Everything's on the chart!" }));
 }
@@ -427,7 +427,7 @@ $('#btn-copy').addEventListener('click', async () => {
 
 $('#btn-native-share').addEventListener('click', async () => {
   try {
-    await navigator.share({ title: state.title, text: 'Look at my chart 🍔', url: $('#share-url').value });
+    await navigator.share({ title: state.title, text: SHARE_TEXT, url: $('#share-url').value });
   } catch { /* user dismissed the sheet */ }
 });
 
@@ -441,7 +441,7 @@ $('#btn-image').addEventListener('click', async () => {
   btn.disabled = true;
   try {
     const blob = await renderPoster(poster);
-    const file = new File([blob], 'fast-food-plot.png', { type: 'image/png' });
+    const file = new File([blob], FILE_NAME, { type: 'image/png' });
     const touch = matchMedia('(pointer: coarse)').matches;
     if (touch && navigator.canShare?.({ files: [file] })) {
       try { await navigator.share({ files: [file], title: state.title }); } catch { /* dismissed */ }

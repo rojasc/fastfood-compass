@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-variant="fastfood">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,11 +9,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <header class="appbar">
-    <span class="brand">🍔<span class="brand-text"> Fast Food Plot</span></span>
+    <nav class="brand" aria-label="Charts">
+      <a href="./" aria-current="page">🍔<span class="brand-text">Fast Food</span></a>
+      <a href="ibs/">💩<span class="brand-text">IBS</span></a>
+    </nav>
     <div class="actions">
       <button id="btn-share" class="btn primary">Share<span class="long"> link</span></button>
       <button id="btn-image" class="btn">Save<span class="long"> image</span></button>
@@ -99,6 +102,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/app.js?v=8"></script>
+  <script type="module" src="js/app.js?v=9"></script>
 </body>
 </html>
